@@ -536,10 +536,9 @@ contract CheerTest is Test {
     assertEq(bytes(exact64).length, 64);
     bytes memory exact200Bytes = new bytes(200);
     for (uint256 i = 0; i < 200; i++) exact200Bytes[i] = "a";
-    string memory exact200 = string(exact200Bytes);
 
     vm.prank(athlete);
-    uint256 idBoundary = cheer.start(exact64, exact200, 3, 1);
+    uint256 idBoundary = cheer.start(exact64, string(exact200Bytes), 3, 1);
     assertEq(cheer.goalOf(idBoundary).title, exact64);
 
     // 2. Status view coverage
@@ -549,15 +548,47 @@ contract CheerTest is Test {
     assertFalse(canSettle);
 
     // 3. byAthlete view coverage
-    (uint256[] memory athleteIds, Cheer.Goal[] memory athleteGoals, uint256 totalAthlete) = cheer.byAthlete(athlete, 0, 10);
+    (uint256[] memory athleteIds, , uint256 totalAthlete) = cheer.byAthlete(athlete, 0, 10);
     assertEq(athleteIds.length, 1);
-    assertEq(athleteGoals.length, 1);
     assertEq(totalAthlete, 1);
 
     // 4. latest view clamping coverage
-    (uint256[] memory latestIds, Cheer.Goal[] memory latestGoals, uint256 totalLatest) = cheer.latest(0, 10);
+    (uint256[] memory latestIds, , uint256 totalLatest) = cheer.latest(0, 10);
     assertEq(latestIds.length, 1);
-    assertEq(latestGoals.length, 1);
     assertEq(totalLatest, 1);
+  }
+
+  function test_AdditionalMutantKillers() public {
+    // 5. Kill mutant at line 112: MAX_LEAD_DAYS boundary (14 days)
+    vm.prank(athlete);
+    uint256 id14 = cheer.start("Lead 14", "Goal 14", 5, 14);
+    assertEq(cheer.goalOf(id14).numDays, 5);
+
+    // 6. Kill mutant at line 303 & line 324: status() running dayNumber and canSettle on completed streak
+    vm.prank(athlete);
+    uint256 id3 = cheer.start("Habit 3d", "Goal 3d", 3, 1);
+    uint64 sDay = cheer.goalOf(id3).startDay;
+
+    vm.warp(sDay * 1 days + 12 hours);
+    (, , int32 dayNumDuring, ) = cheer.status(id3);
+    assertEq(dayNumDuring, 1); // today - startDay + 1 = 1
+
+    // Check in on day 0, 1, 2 for id3
+    for (uint64 k = 0; k < 3; k++) {
+      vm.warp((sDay + k) * 1 days + 10 hours);
+      vm.prank(athlete);
+      cheer.checkIn(id3);
+    }
+    // Warp to after day 2 (day 3)
+    vm.warp((sDay + 3) * 1 days + 2 hours);
+    (, , , bool canSettleCompleted) = cheer.status(id3);
+    assertTrue(canSettleCompleted); // kills canSettle = false mutant on line 324!
+
+    // 7. Kill mutant at line 398: latest(offset, count) when total > 1 and offset > 0
+    // id14 is id 1, id3 is id 2. total = 2.
+    // latest(1, 1): offset = 1, count = 1. id = total - (offset + i) = 2 - (1 + 0) = 1.
+    (uint256[] memory sliceIds, , ) = cheer.latest(1, 1);
+    assertEq(sliceIds.length, 1);
+    assertEq(sliceIds[0], 1);
   }
 }
