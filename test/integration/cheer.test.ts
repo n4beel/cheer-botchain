@@ -147,11 +147,11 @@ describe("Cheer Integration Test", () => {
     const startDayGoal = curDay + 1n;
 
     // Advance timestamp directly to middle of startDay (Day 0)
-    await publicClient.request({
-      method: "evm_setNextBlockTimestamp" as any,
+    await (publicClient.request as any)({
+      method: "evm_setNextBlockTimestamp",
       params: [Number(startDayGoal * 86400n + 36000n)],
     });
-    await publicClient.request({ method: "evm_mine" as any, params: [] });
+    await (publicClient.request as any)({ method: "evm_mine", params: [] });
 
     // Day 0 check in
     const checkTx0 = await athleteClient.writeContract({
@@ -163,11 +163,11 @@ describe("Cheer Integration Test", () => {
     await publicClient.waitForTransactionReceipt({ hash: checkTx0 });
 
     // Day 1
-    await publicClient.request({
-      method: "evm_setNextBlockTimestamp" as any,
+    await (publicClient.request as any)({
+      method: "evm_setNextBlockTimestamp",
       params: [Number((startDayGoal + 1n) * 86400n + 36000n)],
     });
-    await publicClient.request({ method: "evm_mine" as any, params: [] });
+    await (publicClient.request as any)({ method: "evm_mine", params: [] });
 
     const checkTx1 = await athleteClient.writeContract({
       address: cheerAddress,
@@ -178,11 +178,11 @@ describe("Cheer Integration Test", () => {
     await publicClient.waitForTransactionReceipt({ hash: checkTx1 });
 
     // Day 2
-    await publicClient.request({
-      method: "evm_setNextBlockTimestamp" as any,
+    await (publicClient.request as any)({
+      method: "evm_setNextBlockTimestamp",
       params: [Number((startDayGoal + 2n) * 86400n + 36000n)],
     });
-    await publicClient.request({ method: "evm_mine" as any, params: [] });
+    await (publicClient.request as any)({ method: "evm_mine", params: [] });
 
     const checkTx2 = await athleteClient.writeContract({
       address: cheerAddress,
@@ -193,11 +193,11 @@ describe("Cheer Integration Test", () => {
     await publicClient.waitForTransactionReceipt({ hash: checkTx2 });
 
     // Advance 1 day past end of streak (Day 3)
-    await publicClient.request({
-      method: "evm_setNextBlockTimestamp" as any,
+    await (publicClient.request as any)({
+      method: "evm_setNextBlockTimestamp",
       params: [Number((startDayGoal + 3n) * 86400n + 36000n)],
     });
-    await publicClient.request({ method: "evm_mine" as any, params: [] });
+    await (publicClient.request as any)({ method: "evm_mine", params: [] });
 
     // Check status
     const status = (await publicClient.readContract({

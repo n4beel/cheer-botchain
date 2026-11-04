@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import ConnectButton from "@/components/ui/ConnectButton";
 import BuiltOnBotChain from "@/components/botchain/BuiltOnBotChain";
+import { footerLinks } from "@/lib/botchain/chain";
 
 interface PageShellProps {
   children: ReactNode;
@@ -12,6 +13,8 @@ interface PageShellProps {
 }
 
 export default function PageShell({ children, heading, subheading }: PageShellProps) {
+  const { site, explorer, contract } = footerLinks();
+
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 sticky top-0 z-40">
@@ -54,9 +57,32 @@ export default function PageShell({ children, heading, subheading }: PageShellPr
       <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] py-6 mt-12 text-xs text-[var(--text-muted)]">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <Link href="/" className="hover:underline">Home</Link>
-            <Link href="/start" className="hover:underline">Start Streak</Link>
-            <Link href="/me" className="hover:underline">My Account</Link>
+            {contract && (
+              <a
+                href={contract}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline hover:text-[var(--accent)]"
+              >
+                Contract
+              </a>
+            )}
+            <a
+              href={site}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline hover:text-[var(--accent)]"
+            >
+              BOT Chain
+            </a>
+            <a
+              href={explorer}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline hover:text-[var(--accent)]"
+            >
+              Explorer
+            </a>
           </div>
           <BuiltOnBotChain />
         </div>
